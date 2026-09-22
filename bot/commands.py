@@ -55,6 +55,9 @@ class Commands:
     @only_allowed_chats_message
     async def list_servers(self, message: Message, context: DEFAULT_CONTEXT):
         servers = await Scaleway().list_servers()
+        if not servers:
+            await telegram_retry(message.reply_text, 'no servers to list')
+            return
         servers_lines = [f'*{escape(s.name)}*: _{escape(s.state)}_'
                          for s in servers]
         await telegram_retry(
@@ -64,6 +67,9 @@ class Commands:
     @staticmethod
     async def ask_which_server(message: Message, action: AllowedActions):
         servers = await Scaleway().list_servers()
+        if not servers:
+            await telegram_retry(message.reply_text, 'no servers to list')
+            return
         keyboard = [
             InlineKeyboardButton(s.name, callback_data=f'{action}:{s.id}')
             for s in servers
